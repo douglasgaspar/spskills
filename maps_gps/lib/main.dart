@@ -165,7 +165,7 @@ class _MapaGPSState extends State<MapaGPS> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('LAT: ${posicaoAtual?.latitude ?? ""}'),
+          title: const Text("Mapa e localização"),
           backgroundColor: Colors.green[700],
         ),
         body: GoogleMap(
