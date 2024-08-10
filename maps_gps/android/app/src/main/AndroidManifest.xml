@@ -7,7 +7,7 @@
         android:label="maps_gps"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value=""/>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyBnSHQstZrxzCFqI6CJ1NevzGCutNvYc"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -47,3 +47,4 @@
         </intent>
     </queries>
 </manifest>
+<!-- ZM$ 4 -->

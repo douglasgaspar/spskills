@@ -1,26 +1,49 @@
-import 'dart:ffi';
+//Criar um arquivo .dart para armazenar as configurações de cor de cada tema
+//o arquivo criado foi: temas.dart nas pasta lib
 
 import 'package:flutter/material.dart';
-//Biblioteca para armazenamento local usando padrão do SharedPreferences
-import 'package:shared_preferences/shared_preferences.dart';
+//Biblioteca para controlar o estado do tema e recuperar o valor do dispositivo
+import 'package:provider/provider.dart';
+//Biblioteca para exibir mensagem via Toast
+import 'package:fluttertoast/fluttertoast.dart';
+//Importar a classe dos temas
+import 'selecionatema.dart';
+
+//Variável para armazenar a situaçao atual do tema
+bool temaEscuro = false;
+//Objeto para indicar o nome do tema selecionado
+String corTemaAtual = "Claro";
+//Objeto global para armazenar o tema escolhido
+EscolheTema escolheTemaGlobal = EscolheTema();
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const TemaShared(title: 'Flutter Demo Home Page'),
+    return ChangeNotifierProvider(
+      create: (_) => EscolheTema(), //Cria objeto da classe EscolheTema
+      child: Consumer<EscolheTema>(
+          builder: (context, EscolheTema themeNotifier, child) {
+        return MaterialApp(
+          title: 'Flutter Demo',
+          //Indicação de qual tema será usado, escuro ou claro de acordo com o que foi armazenado por último
+          theme: themeNotifier.temaEscuro
+              ? ThemeData(
+                  brightness: Brightness.dark,
+                )
+              : ThemeData(
+                  brightness: Brightness.light,
+                  primaryColor: Colors.green,
+                  primarySwatch: Colors.green),
+          debugShowCheckedModeBanner: false,
+          home: const TemaShared(
+            title: "Tema e armazenamento local",
+          ),
+        );
+      }),
     );
   }
 }
@@ -34,44 +57,58 @@ class TemaShared extends StatefulWidget {
 }
 
 class _TemaSharedState extends State<TemaShared> {
-  bool temaClaro = true;
+  //Método que irá alterar os valores de acordo com a mudança do Switch
+  void alteraTema(bool valorSwitch) {
+    temaEscuro = valorSwitch;
+    //Altera o tema na tela cada vez que muda o Switch
+    escolheTemaGlobal.temaEscuro
+        ? escolheTemaGlobal.temaEscuro = false
+        : escolheTemaGlobal.temaEscuro = true;
 
-  int _counter = 0;
-
-  void _incrementCounter() {
+    //Muda o Switch e exibe a mensagem no Toast o no Texto abaixo do Switch
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      if (temaEscuro) {
+        corTemaAtual = "Escuro";
+        Fluttertoast.showToast(
+            msg: "Alterado para o tema escuro",
+            backgroundColor: Colors.white,
+            textColor: Colors.black);
+      } else {
+        corTemaAtual = "Claro";
+        Fluttertoast.showToast(
+            msg: "Alterado para o tema claro",
+            backgroundColor: Colors.black,
+            textColor: Colors.white);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Switch(
-                value: temaClaro,
-                activeColor: Colors.red,
-                onChanged: (bool value) {
-                  setState(() {
-                    temaClaro = value;
-                  });
-                }),
-            const Text("Tema: ")
-          ],
-        ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return Consumer<EscolheTema>(
+        builder: (context, EscolheTema escolheTema, child) {
+      escolheTemaGlobal = escolheTema;
+      return Scaffold(
+          appBar: AppBar(
+            title: Text(escolheTema.temaEscuro ? "Tema escuro" : "Tema claro"),
+            actions: [
+              //Ícone da AppBar
+              IconButton(
+                  icon: Icon(escolheTema.temaEscuro
+                      ? Icons.nightlight_round
+                      : Icons.wb_sunny),
+                  onPressed: () {
+                    escolheTema.temaEscuro
+                        ? escolheTema.temaEscuro = false
+                        : escolheTema.temaEscuro = true;
+                  })
+            ],
+          ),
+          body: Column(children: [
+            //Campos da tela
+            Switch(value: temaEscuro, onChanged: alteraTema),
+            Text('Tema $corTemaAtual')
+          ]));
+    });
   }
 }
