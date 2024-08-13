@@ -5,6 +5,8 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 //Classe para recuperar o contexto da aplicação fora de um widget
 import 'package:camera_galeria/navegacao_contexto.dart';
+//Biblioteca para requisitar permissões
+import 'package:permission_handler/permission_handler.dart';
 //Importando a tela que irá exibir a foto tirada
 import 'package:camera_galeria/tela_foto.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +67,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    //Requisitar permissões para usar o disco e salvar
+    final status = Permission.storage.request();
     //Iniciar o objeto do CameraController
     controllerCamera = CameraController(widget.camera, ResolutionPreset.medium);
     //Iniciar o conteúdo de captura da câmera
