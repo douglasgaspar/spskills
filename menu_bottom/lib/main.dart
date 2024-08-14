@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:menu_bottom/tela_cadastro.dart';
+import 'package:menu_bottom/tela_listar.dart';
 
 void main() {
   runApp(const MainApp());
@@ -69,6 +70,8 @@ class _TelaMenuInferiorState extends State<TelaMenuInferior> {
           ),
           //Conteúdo do segundo item do menu inferior
           const TelaCadastro(),
+          //Conteúdo do terceiro item do menu inferior
+          const TelaListar()
         ][indiceMenu]);
   }
 }
