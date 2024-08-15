@@ -20,6 +20,10 @@ class _TelaListarState extends State<TelaListar> {
   Produtoras? produtoraSelecionada;
   //Lista de FilmesProdutora para armazenar o título dos filmes da produtora selecionada
   List<FilmesProdutora> tituloFilmes = [];
+  //Variável para armazenar o ID do filme a ser removido
+  int filmeID = 0;
+  String tituloFilmeAlert = "";
+  bool filmeRemovido = false;
 
   //Método para consultar o nome das produtoras
   Future<List<Produtoras>> buscarProdutoras() async {
@@ -71,6 +75,61 @@ class _TelaListarState extends State<TelaListar> {
     }
   }
 
+  //Método para buscar o título dos filmes de uma produtora selecionada no DropDown
+  Future<bool> removerFilme(int index) async {
+    //Realizar o envio da requisição no webservice usando DELETE
+    final resposta = await http.delete(Uri.parse(
+        'http://www.douglasgaspar.com.br:21163/api/filmes/apagar/$filmeID'));
+
+    //Verificar o status do retorno
+    if (resposta.statusCode == 200) {
+      setState(() {
+        filmeRemovido = true;
+        tituloFilmes.removeAt(index);
+      });
+      return true;
+    } else {
+      //Se encontrar erro exibe mensagem
+      Fluttertoast.showToast(
+          msg: 'Erro ao buscar filmes da produtora! ${resposta.body}',
+          backgroundColor: Colors.red);
+      setState(() {
+        filmeRemovido = false;
+      });
+      return false;
+    }
+  }
+
+  Future<void> criaAlertDialog(BuildContext context, int index) {
+    return showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Apagar filme?"),
+            content: Text('Deseja mesmo apagar o filme $tituloFilmeAlert'),
+            actions: [
+              TextButton(
+                  onPressed: () async {
+                    await removerFilme(index);
+                    if (filmeRemovido) {
+                      Fluttertoast.showToast(msg: "Filme removido");
+                      Navigator.of(context).pop();
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: const Text("Sim")),
+              TextButton(
+                  onPressed: () {
+                    //Fecha o dialog
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Cancelar"))
+            ],
+          );
+        });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -116,8 +175,6 @@ class _TelaListarState extends State<TelaListar> {
                       produtoraSelecionada = value;
                       //Faz a chamada dos filmes para a produtora selecionada
                       buscarFilmes();
-                      Fluttertoast.showToast(
-                          msg: 'ID ${produtoraSelecionada!.idProdutora}');
                     });
                   },
                 ),
@@ -131,18 +188,30 @@ class _TelaListarState extends State<TelaListar> {
                   itemBuilder: (context, index) {
                     //Conteúdo e configuração de cada item
                     return Card(
-                      //Cor de fundo
-                      color: Colors.amber,
-                      child: Column(children: [
-                        //Cria uma linha para cada item com o título do filme
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(tituloFilmes[index].tituloFilme.toString()),
-                          ],
-                        ),
-                      ]),
-                    );
+                        //Cor de fundo
+                        color: Colors.amber,
+                        child: Column(children: [
+                          //Cria uma linha para cada item com o título do filme
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text(
+                                    tituloFilmes[index].tituloFilme.toString()),
+                                ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        filmeID = tituloFilmes[index].filmeID!;
+                                        tituloFilmeAlert =
+                                            tituloFilmes[index].tituloFilme!;
+                                      });
+                                      criaAlertDialog(context, index);
+                                      Fluttertoast.showToast(
+                                          msg: 'Filme ID $filmeID');
+                                    },
+                                    icon: const Icon(Icons.delete),
+                                    label: const Text("Apagar"))
+                              ])
+                        ]));
                   },
                 )),
               ]));
